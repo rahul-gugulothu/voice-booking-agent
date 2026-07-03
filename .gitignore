@@ -1,0 +1,16 @@
+# Node modules
+node_modules/
+backend/node_modules/
+
+# Environment
+backend/.env
+
+# Google OAuth
+backend/credentials/
+backend/token.json
+
+# Logs
+*.log
+
+# VS Code
+.vscode/
