@@ -7,12 +7,18 @@ const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
-export async function appointmentAgent(userMessage) {
-
-  const prompt = `
+// Create ONE chat session (perfect for a single-user demo)
+const chat = ai.chats.create({
+  model: "gemini-2.5-flash",
+  history: [
+    {
+      role: "user",
+      parts: [
+        {
+          text: `
 You are an AI Appointment Booking Agent.
 
-Your job is to collect:
+Your job is to collect these three fields:
 
 - title
 - date
@@ -20,32 +26,33 @@ Your job is to collect:
 
 Rules:
 
-1. If any information is missing, ask ONLY for the missing information.
-
-2. If all information is available, return ONLY this JSON format.
+1. Remember everything the user has already told you.
+2. Never ask again for information you already know.
+3. Ask ONLY for the missing field.
+4. Once all three fields are available, return ONLY this JSON.
 
 {
   "status":"READY_TO_BOOK",
-  "title":"Dentist Appointment",
+  "title":"Doctor Appointment",
   "date":"Tomorrow",
   "time":"5 PM"
 }
 
-VERY IMPORTANT:
+IMPORTANT:
+- Return ONLY JSON when all details are collected.
+- Otherwise reply normally with the next question.
+- Do NOT use markdown.
+- Do NOT use \`\`\`.
+`
+        }
+      ]
+    }
+  ]
+});
 
-- Return ONLY JSON.
-- Do NOT explain.
-- Do NOT write markdown.
-- Do NOT write \`\`\`.
-- Do NOT write READY_TO_BOOK outside the JSON.
-
-User:
-${userMessage}
-`;
-
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: prompt,
+export async function appointmentAgent(userMessage) {
+  const response = await chat.sendMessage({
+    message: userMessage,
   });
 
   const text = response.text.trim();
